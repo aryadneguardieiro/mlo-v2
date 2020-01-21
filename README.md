@@ -1,7 +1,7 @@
-# Introduction to MLO (Machine Learning Based Orchestration)
-## What can you expect from MLO once installed
+# MLO-V2 (Machine Learning Based Orchestration Version 2)
+This repository is a fork from NECOS repository: https://gitlab.com/necos/demos/mlo in order to make improovements in the slice orchestration using machine learning demonstration.
 
-**Introduction by Pasquini**
+More information about NECOS project: http://www.h2020-necos.eu/
 
 ## Functional components
 The picture bellow shows the architecture of this demo. The NECOS components implemented here are the SRO (Slice Resource Orchestrator) 
