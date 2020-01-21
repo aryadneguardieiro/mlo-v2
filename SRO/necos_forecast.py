@@ -137,7 +137,7 @@ class NeuralNetworkModel():
     plt.show()
 
   def create_model(self, overwrite = True):
-    file_name = 'model_{}_seconds_forecast_new_loadgen.h5'.format(self.steps_in_future, self.past_history)
+    file_name = 'model_{}_seconds_forecast_{}_past_history.h5'.format(self.steps_in_future, self.past_history)
     model_path = os.path.join(self.directory,file_name)
     self.preproccess_dataset()
 
@@ -183,8 +183,8 @@ class NeuralNetworkModel():
     #plt.figure(dpi=1200)
     self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast.\nNMAE RNA: {:.2f} NMAE NAIVE: {:.2f}'.format(self.steps_in_future, nmae_rna, nmae_naive))
     figure_path = os.path.join(self.directory, '{}_seconds_forecast.png'.format(self.steps_in_future, self.past_history))
-    plt.show()
-    #plt.savefig(figure_path)
+    #plt.show()
+    plt.savefig(figure_path)
 
   def normalize_input(self, input_metrics):
     self.input_metrics_mean = input_metrics.mean(axis=1)
@@ -215,7 +215,7 @@ if __name__ == "__main__":
   sla_metric_name = 'R_99'
   steps_in_future = [5,10,20,30]
   evaluation_interval = 200
-  past_histories=[60*8, 60*4]
+  past_histories=[60*4, 60*8]
   for directory in directories:
     print("** Creating models in directory  {} **".format(directory))
     x_file = os.path.join(directory, 'x_selected_metrics.csv')
