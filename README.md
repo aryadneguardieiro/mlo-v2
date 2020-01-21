@@ -1,5 +1,5 @@
-# MLO-V2 (Machine Learning Based Orchestration Version 2)
-This repository is a fork from NECOS repository: https://gitlab.com/necos/demos/mlo in order to make improovements in the slice orchestration using machine learning demonstration.
+# Machine Learning Based Orchestration Version 2 (MLO-V2)
+This repository is a fork of the NECOS original MLO repository: https://gitlab.com/necos/demos/mlo in order to make improovements in the slice orchestration using machine learning demonstration.
 
 More information about NECOS project: http://www.h2020-necos.eu/
 
