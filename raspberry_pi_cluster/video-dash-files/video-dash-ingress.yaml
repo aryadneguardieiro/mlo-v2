@@ -1,0 +1,13 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: video-dash
+spec:
+  rules:
+  - host: video.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: video-dash
+          servicePort: 8080

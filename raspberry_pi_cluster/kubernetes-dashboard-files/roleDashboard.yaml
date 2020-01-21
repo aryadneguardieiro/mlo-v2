@@ -1,0 +1,10 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: kubernetes-dashboard
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "proxy"]
+    resourceNames: ["heapster"]

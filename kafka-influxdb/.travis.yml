@@ -1,0 +1,34 @@
+# https://travis-ci.org/mre/kafka-influxdb
+sudo: false
+os:
+  - linux
+env:
+  global:
+    - NEWEST_PYTHON=3.5
+sudo: required
+language: python
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6-dev"
+  - "pypy-5.4"
+  - "nightly"
+matrix:
+  allow_failures:
+    - python: "3.6-dev"
+    - python: "nightly"
+  fast_finish: true
+before_install:
+  - pip install pypandoc # Required for README.md conversion to RestructuredText (used by pypi)
+  - pip install --upgrade pip setuptools
+install:
+  # Install librdkafka, which is needed for the high-performance confluent Kafka consumer.
+  # PyPy has problems with librdkafka: "undefined symbol: PyUnicode_FromFormat". Skip for this platform.
+  - if [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then git clone https://github.com/edenhill/librdkafka.git && cd librdkafka && ./configure --prefix=/usr && make && sudo make install && cd ../; fi
+  - "python setup.py install"
+script:
+  - "python setup.py test"
+after_success:
+  - if [[ $TRAVIS_PYTHON_VERSION == $NEWEST_PYTHON ]]; then pip install pytest-cov && py.test --cov=kafka_influxdb && bash <(curl -s https://codecov.io/bash); fi

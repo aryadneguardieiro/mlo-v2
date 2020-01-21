@@ -1,0 +1,8 @@
+# to install packages: pip3 install -r requirements.txt
+flask
+requests
+pandas
+sklearn
+numpy
+kafka-python
+tensorflow==2.0.0-rc0

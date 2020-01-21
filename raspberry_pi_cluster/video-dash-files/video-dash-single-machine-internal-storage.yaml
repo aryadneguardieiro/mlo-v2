@@ -1,0 +1,60 @@
+#----------------------- Video Dash Deployment -------------------#
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: video-dash-single-machine-internal-storage
+spec:
+  selector:
+    matchLabels:
+      app: video-dash-single-machine-internal-storage
+  replicas: 1
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: video-dash-single-machine-internal-storage
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - video-dash-single-machine-internal-storage
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: video-dash-single-machine-internal-storage
+        image: httpd:2.4
+        ports:
+        - containerPort: 80
+        volumeMounts:
+            - name: self-video-storage
+              mountPath: "/usr/local/apache2/htdocs"
+      nodeSelector:
+        video-dash-single-machine-internal-storage: sim
+      volumes:
+      - name: self-video-storage
+        hostPath:
+          # directory location on host
+          path: "/home/cloud/videos"
+          # this field is optional
+          type: Directory
+
+---
+#----------------------- Video Dash Service -------------------#
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: video-dash-single-machine-internal-storage
+  name: video-dash-single-machine-internal-storage
+spec:
+  ports:
+    - port: 8080
+      targetPort: 80
+      nodePort: 31313
+
+  selector:
+    app: video-dash-single-machine-internal-storage
+  type: NodePort

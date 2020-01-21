@@ -1,0 +1,86 @@
+#----------------------- Video Dash Persistent Volume -------------------#
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-second
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.0.110
+    path: "/home/cloud/videos"
+
+---
+#----------------------- Video Dash Persistent Volume Claim  -------------------#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-second
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+#----------------------- Video Dash Deployment -------------------#
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: video-dash-second
+spec:
+  selector:
+    matchLabels:
+      app: video-dash-second
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: video-dash-second
+    spec:
+      containers:
+      - name: dash-video-second
+        image: httpd:2.4
+        ports:
+        - containerPort: 80
+        volumeMounts:
+            - name: nfs-second
+              mountPath: "/usr/local/apache2/htdocs"
+      nodeSelector:
+        video-dash-second: sim
+      volumes:
+      - name: nfs-second
+        persistentVolumeClaim:
+          claimName: nfs-second
+
+---
+#----------------------- Video Dash Service -------------------#
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: video-dash-second
+  name: video-dash-second
+spec:
+  ports:
+    - port: 8080
+      targetPort: 80
+      nodePort: 31450
+  selector:
+    app: video-dash-second
+  type: NodePort
+#---
+
+#---------------------- Video Dash EndPoint  --------------------#
+#apiVersion: v1
+#kind: Endpoints
+#metadata:
+#  name: video-dash
+#subsets:
+#  - addresses:
+#      - ip: 192.168.0.10
+#      - ip: 192.168.0.11
+#    ports:
+#      - port: 31450

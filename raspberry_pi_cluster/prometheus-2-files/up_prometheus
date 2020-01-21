@@ -1,0 +1,13 @@
+#!/bin/bash
+
+kubectl delete namespace monitoring2;
+#kubectl delete pv nfs-prometheus;
+kubectl delete clusterrole prometheus2;
+kubectl delete clusterrolebinding prometheus2;
+
+kubectl create namespace monitoring2 && \
+	kubectl apply -f ~/raspberry_pi_cluster/prometheus-2-files/clusterRole.yaml && \
+	kubectl apply -f ~/raspberry_pi_cluster/prometheus-2-files/config-map.yaml && \
+	kubectl -n monitoring2 apply -f ~/raspberry_pi_cluster/prometheus-2-files/prometheus-deployment.yaml && \
+	kubectl apply -f ~/raspberry_pi_cluster/prometheus-2-files/prometheus-service.yaml && \
+	echo "Pronto :D"

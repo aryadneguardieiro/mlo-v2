@@ -1,0 +1,44 @@
+#----------------------- Prometheus Deployment  -------------------#
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus-2-deployment
+  namespace: monitoring2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus-2-server
+    spec:
+      containers:
+        - name: prometheus2
+          image: prom/prometheus:v2.2.1
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
+            - "--storage.tsdb.retention=15d"
+            - "--web.enable-lifecycle"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-2-config-volume
+              mountPath: /etc/prometheus/
+            - name: nfs-2-prometheus
+              mountPath: /prometheus/
+            - name: tz-config
+              mountPath: /etc/localtime
+      nodeSelector:
+        metrica: sim
+      volumes:
+        - name: prometheus-2-config-volume
+          configMap:
+            defaultMode: 420
+            name: prometheus-2-server-conf
+        - name: tz-config
+          hostPath:
+            path: /usr/share/zoneinfo/America/Sao_Paulo
+  
+        - name: nfs-2-prometheus
+          hostPath:
+            path: /home/cloud/prometheus-2/

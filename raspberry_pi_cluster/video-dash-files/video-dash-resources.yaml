@@ -1,0 +1,95 @@
+#----------------------- Video Dash Persistent Volume -------------------#
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.0.110
+    path: "/home/cloud/videos"
+
+---
+#----------------------- Video Dash Persistent Volume Claim  -------------------#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+#----------------------- Video Dash Deployment -------------------#
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: video-dash
+spec:
+  selector:
+    matchLabels:
+      app: video-dash
+  replicas: 3
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: video-dash
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - video-dash
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: dash-video
+        image: httpd:2.4
+        ports:
+        - containerPort: 80
+        volumeMounts:
+            - name: nfs
+              mountPath: "/usr/local/apache2/htdocs"
+      nodeSelector:
+        video-dash-loadbalancer: sim
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+---
+#----------------------- Video Dash Service -------------------#
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: video-dash
+  name: video-dash
+spec:
+  ports:
+    - port: 8080
+      targetPort: 80
+  selector:
+    app: video-dash
+  type: ClusterIP
+#---
+
+#---------------------- Video Dash EndPoint  --------------------#
+#apiVersion: v1
+#kind: Endpoints
+#metadata:
+#  name: video-dash
+#subsets:
+#  - addresses:
+#      - ip: 192.168.0.10
+#      - ip: 192.168.0.11
+#    ports:
+#      - port: 31450

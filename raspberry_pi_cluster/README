@@ -1,0 +1,3 @@
+Files to automatically configure a raspberry pi cluster.
+
+Use the makepi.sh to configure the cluster without using proxy. Check out the Wiki section for more details on how to use it.

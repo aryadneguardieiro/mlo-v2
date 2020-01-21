@@ -1,0 +1,15 @@
+---
+kafka:
+  host: "192.168.0.111"
+  port: 9092
+  topic: "selected-metrics-5"
+  reader: "kafka_influxdb.reader.confluent"
+influxdb:
+  host: "localhost"
+  port: 8086
+  user: "cloud"
+  password: "necos"
+  dbname: "selected-metrics"
+encoder: "kafka_influxdb.encoder.prometheus_encoder"
+buffer_size: 10
+statistics: true

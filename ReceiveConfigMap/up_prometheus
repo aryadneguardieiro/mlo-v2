@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ $# -eq 1 ] && [ "$1" == "stop" ]; then
+  /home/cloud/raspberry_pi_cluster/prometheus-2-files/stop_prometheus
+fi
+
+kubectl create namespace monitoring2 && \
+	kubectl apply -f ~/raspberry_pi_cluster/prometheus-2-files/clusterRole.yaml && \
+	kubectl apply -f ~/raspberry_pi_cluster/prometheus-2-files/config-map.yaml && \
+	kubectl -n monitoring2 apply -f ~/raspberry_pi_cluster/prometheus-2-files/prometheus-deployment.yaml && \
+	kubectl apply -f ~/raspberry_pi_cluster/prometheus-2-files/prometheus-service.yaml && \
+	echo "Done"

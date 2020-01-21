@@ -1,0 +1,20 @@
+---
+kafka:
+  host: "kafkahost"
+  port: 1234
+  topic: "kafkatopic"
+  group : "foogroup"
+influxdb:
+  host: "influxdbhost"
+  port: 9999
+  user: "hans"
+  password: "hans"
+  dbname: "influxdbname"
+  use_ssl: True
+  verify_ssl: True
+  timeout: 9000
+  use_udp: False
+  retention_policy: "my_rp"
+encoder: "collectd_graphite_encoder"
+buffer_size: 444
+statistics: true

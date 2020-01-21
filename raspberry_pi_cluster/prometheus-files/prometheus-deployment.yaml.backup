@@ -1,0 +1,71 @@
+#----------------------- Prometheus Persistent Volume -------------------#
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-prometheus
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.0.120
+    path: "/home/cloud/prometheus"
+---
+#----------------------- Prometheus Persistent Volume Claim  -------------------#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-prometheus
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+#----------------------- Prometheus Deployment  -------------------#
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+  namespace: monitoring
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus-server
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.2.1
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
+            - "--storage.tsdb.retention=15d"
+            - "--web.enable-lifecycle"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+            - name: nfs-prometheus
+              mountPath: /prometheus/
+            - name: tz-config
+              mountPath: /etc/localtime
+      nodeSelector:
+        metrica: sim
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            defaultMode: 420
+            name: prometheus-server-conf
+        - name: tz-config
+          hostPath:
+            path: /usr/share/zoneinfo/America/Sao_Paulo
+  
+        - name: nfs-prometheus
+          persistentVolumeClaim:
+            claimName: nfs-prometheus

@@ -1,0 +1,18 @@
+Reading config file config_example.yaml
+Flushing output buffer. 9393.67 messages/s
+Flushing output buffer. 15245.58 messages/s
+Flushing output buffer. 15303.94 messages/s
+Flushing output buffer. 3856.68 messages/s
+Flushing output buffer. 15272.79 messages/s
+Flushing output buffer. 4993.42 messages/s
+Flushing output buffer. 2274.67 messages/s
+Flushing output buffer. 15136.86 messages/s
+Flushing output buffer. 15237.05 messages/s
+Flushing output buffer. 7638.49 messages/s
+Flushing output buffer. 5774.53 messages/s
+Flushing output buffer. 5322.43 messages/s
+Flushing output buffer. 3567.75 messages/s
+Flushing output buffer. 15216.16 messages/s
+Flushing output buffer. 3926.98 messages/s
+Flushing output buffer. 6560.72 messages/s
+Flushing output buffer. 5114.83 messages/s
