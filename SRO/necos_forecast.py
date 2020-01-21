@@ -159,7 +159,7 @@ class NeuralNetworkModel():
       self.single_step_model.add(tf.keras.layers.Dense(1))
 
       #multi_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(clipvalue=1.0), loss='mae')
-      self.single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(), loss='mae',metrics=['mae'])
+      self.single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(), loss='mape',metrics=['mape'])
 
       self.single_step_history = self.single_step_model.fit(train_data_single, epochs=self.EPOCHS,
                                                   steps_per_epoch=self.evaluation_interval,
@@ -213,10 +213,11 @@ class NeuralNetworkModel():
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
   sla_metric_name = 'R_99'
-  steps_in_future = [30]
+  steps_in_future = [5,10,20,30]
   evaluation_interval = 200
-  past_histories=[60*8]
+  past_histories=[60*8, 60*4]
   for directory in directories:
+    print("** Creating models in directory  {} **".format(directory))
     x_file = os.path.join(directory, 'x_selected_metrics.csv')
     y_file = os.path.join(directory, 'y_metrics.csv')
     for value in steps_in_future:
