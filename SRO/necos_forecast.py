@@ -100,8 +100,9 @@ class NeuralNetworkModel():
 
   def show_plot(self,plot_data, delta, title):
     labels = ['History', 'Model Prediction', 'Naive (simple mean) {:.2f}'.format(plot_data[-1])]
-    marker = ['b.', 'r.', 'm-']
-
+    marker = ['.', '.', '-']
+    colors = ['#56a64b', '#8ab8ff', '#6f4044']
+ 
     plt.title(title)
     for i, x in enumerate(plot_data[:-1]):
       if i:
@@ -110,15 +111,16 @@ class NeuralNetworkModel():
                 label=labels[i])
       else:
         time_steps = self.create_time_steps(plot_data[0].shape[0]+delta, -delta)
-        plt.plot(time_steps, plot_data[i], marker[i], label=labels[i])
+        plt.plot(time_steps, plot_data[i], marker[i], label=labels[i], color = colors[i])
 
     plt.plot(time_steps, [plot_data[-1]]*len(time_steps), marker[-1], label=labels[-1])
     maximum = max(plot_data[1])
     minimum = min(plot_data[1])
-    plt.plot(time_steps, [maximum]*len(time_steps), '--', label='Maximum predicted {:.2f}'.format(maximum))
-    plt.plot(time_steps, [minimum]*len(time_steps), '--', label='Minimum predicted {:.2f}'.format(minimum))
+    plt.plot(time_steps, [maximum]*len(time_steps), '--', color = '#808080', label='Maximum predicted {:.2f}'.format(maximum))
+    plt.plot(time_steps, [minimum]*len(time_steps), '--', color = '#4c4c4c', label='Minimum predicted {:.2f}'.format(minimum))
 
     plt.legend()
+    plt.ylim(0,300)
     plt.xlabel('Time-Step')
 
   def plot_train_history(self, history, title):
@@ -216,11 +218,11 @@ class NeuralNetworkModel():
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
   sla_metric_name = 'R_99'
-  steps_in_future = [5,10,20,30]
+  steps_in_future = [5] #[5,10,20,30,40,50,60]
   evaluation_interval = 200
-  past_histories=[60*4, 60*8]
+  past_histories= [60*4]#[60*4, 60*8]
   for directory in directories:
-    print("** Creating models in directory  {} **".format(directory))
+    print("** Creating models in directory {} **".format(directory))
     x_file = os.path.join(directory, 'x_selected_metrics.csv')
     y_file = os.path.join(directory, 'y_metrics.csv')
     for value in steps_in_future:
