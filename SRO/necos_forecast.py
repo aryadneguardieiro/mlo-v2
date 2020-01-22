@@ -178,7 +178,7 @@ class NeuralNetworkModel():
     y_predictions_naive = self.y_val_single.mean()
     nmae_rna = self.nmae(y_predictions, self.y_val_single)
     nmae_naive = self.nmae(y_predictions_naive, self.y_val_single)
-    print("Steps: {}, NMAE RNA {}, NMAE naive: {}".format(self.steps_in_future, nmae_rna, nmae_naive))
+    print("Steps: {}, NMAE RNA: {}, NMAE naive: {}, MAPE: RNA {}, MAPE: naive {}".format(self.steps_in_future, nmae_rna, nmae_naive))
     plt.clf()
     #plt.figure(dpi=1200)
     self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast.\nNMAE RNA: {:.2f} NMAE NAIVE: {:.2f}'.format(self.steps_in_future, nmae_rna, nmae_naive))
@@ -209,6 +209,9 @@ class NeuralNetworkModel():
 
   def nmae(self, predicted, real):
     return (np.absolute(predicted - real).mean())/real.mean()
+
+  def mape(self, predicted, real):
+    return 100* (np.absolute(predicted - real)/ real)
 
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
