@@ -161,7 +161,7 @@ class NeuralNetworkModel():
       self.single_step_model.add(tf.keras.layers.Dense(1))
 
       #multi_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(clipvalue=1.0), loss='mae')
-      self.single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(), loss='mape',metrics=['mape'])
+      self.single_step_model.compile(optimizer=tf.keras.optimizers.RMSprop(), loss='mae', metrics=['mape'])
 
       self.single_step_history = self.single_step_model.fit(train_data_single, epochs=self.EPOCHS,
                                                   steps_per_epoch=self.evaluation_interval,
