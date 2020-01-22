@@ -136,7 +136,7 @@ class NeuralNetworkModel():
 
     plt.show()
 
-  def create_model(self, overwrite = True):
+  def create_model(self, overwrite = False):
     file_name = 'model_{}_seconds_forecast_{}_past_history.h5'.format(self.steps_in_future, self.past_history)
     model_path = os.path.join(self.directory,file_name)
     self.preproccess_dataset()
@@ -176,13 +176,13 @@ class NeuralNetworkModel():
     self.y_val_single = self.denormalize_value(self.y_val_single)
 
     y_predictions_naive = self.y_val_single.mean()
-    nmae_rna = self.nmae(y_predictions, self.y_val_single)
-    nmae_naive = self.nmae(y_predictions_naive, self.y_val_single)
-    print("Steps: {}, NMAE RNA: {}, NMAE naive: {}, MAPE: RNA {}, MAPE: naive {}".format(self.steps_in_future, nmae_rna, nmae_naive))
+    mape_rna = self.mape(y_predictions, self.y_val_single)
+    mape_naive = self.mape(y_predictions_naive, self.y_val_single)
+    print("Steps: {} in future, history size: {}, MAPE: RNA {}, MAPE: naive {}".format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
     plt.clf()
     #plt.figure(dpi=1200)
-    self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast.\nNMAE RNA: {:.2f} NMAE NAIVE: {:.2f}'.format(self.steps_in_future, nmae_rna, nmae_naive))
-    figure_path = os.path.join(self.directory, '{}_seconds_forecast.png'.format(self.steps_in_future, self.past_history))
+    self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast.\nMAPE RNA: {:.2f} MAPE NAIVE: {:.2f}'.format(self.steps_in_future, mape_rna, mape_naive))
+    figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history.png'.format(self.steps_in_future, self.past_history))
     #plt.show()
     plt.savefig(figure_path)
 
@@ -211,7 +211,7 @@ class NeuralNetworkModel():
     return (np.absolute(predicted - real).mean())/real.mean()
 
   def mape(self, predicted, real):
-    return 100* (np.absolute(predicted - real)/ real)
+    return np.sum(np.absolute((real - predicted)/real))*100/len(real)
 
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
