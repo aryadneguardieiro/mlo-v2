@@ -220,7 +220,7 @@ if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
   sla_metric_name = 'R_99'
   steps_in_future = [5,10,20,30,40,50,60]
-  evaluation_interval = 100
+  evaluation_interval = 200
   past_histories= [60*4, 60*8]
   for directory in directories:
     print("** Creating models in directory {} **".format(directory))
