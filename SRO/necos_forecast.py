@@ -99,7 +99,7 @@ class NeuralNetworkModel():
     return time_steps
 
   def show_plot(self,plot_data, delta, title):
-    labels = ['History', 'Model Prediction', 'Naive (simple mean) {:.2f}'.format(plot_data[-1])]
+    labels = ['History', 'Model Prediction', 'Naive (simple average) {:.2f}'.format(plot_data[-1])]
     marker = ['.', '.', '-']
     colors = ['#56a64b', '#8ab8ff', '#6f4044']
  
@@ -136,9 +136,9 @@ class NeuralNetworkModel():
     plt.title(title)
     plt.legend()
 
-    plt.show()
+    #plt.show()
 
-  def create_model(self, overwrite = False):
+  def create_model(self, overwrite = True):
     file_name = 'model_{}_seconds_forecast_{}_past_history.h5'.format(self.steps_in_future, self.past_history)
     model_path = os.path.join(self.directory,file_name)
     self.preproccess_dataset()
@@ -168,9 +168,10 @@ class NeuralNetworkModel():
                                                   validation_data=val_data_single,
                                                   validation_steps=50)
 
-      #self.plot_train_history(self.single_step_history,
-      #             '{} seconds forecast - Training and Validation Mean Squared Error'.format(self.steps_in_future))
-
+      self.plot_train_history(self.single_step_history,
+                   '{} seconds forecast, {} history size \nTraining and Validation Histories'.format(self.steps_in_future, self.past_history))
+      figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history_train_history.png'.format(self.steps_in_future, self.past_history))
+      plt.savefig(figure_path)
       self.single_step_model.save(model_path)
 
     y_predictions = self.single_step_model.predict(self.x_val_single).flatten()
@@ -183,7 +184,7 @@ class NeuralNetworkModel():
     print("Steps: {} in future, history size: {}, MAPE: RNA {}, MAPE: naive {}".format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
     plt.clf()
     #plt.figure(dpi=1200)
-    self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast.\nMAPE RNA: {:.2f} MAPE NAIVE: {:.2f}'.format(self.steps_in_future, mape_rna, mape_naive))
+    self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast, {} history size \nMAPE RNA: {:.2f} MAPE NAIVE: {:.2f}'.format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
     figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history.png'.format(self.steps_in_future, self.past_history))
     #plt.show()
     plt.savefig(figure_path)
@@ -218,9 +219,9 @@ class NeuralNetworkModel():
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
   sla_metric_name = 'R_99'
-  steps_in_future = [5] #[5,10,20,30,40,50,60]
-  evaluation_interval = 200
-  past_histories= [60*4]#[60*4, 60*8]
+  steps_in_future = [5,10,20,30,40,50,60]
+  evaluation_interval = 100
+  past_histories= [60*4, 60*8]
   for directory in directories:
     print("** Creating models in directory {} **".format(directory))
     x_file = os.path.join(directory, 'x_selected_metrics.csv')
