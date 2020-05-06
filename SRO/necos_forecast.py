@@ -18,7 +18,7 @@ class NeuralNetworkModel():
   BATCH_SIZE = 256
   STEP = 1
 
-  def __init__(self, x_file, y_file, target_variable_name, steps_in_future = 30, directory = None, past_history = 60*8,
+  def __init__(self, x_file, y_file, target_variable_name, steps_in_future = 30, directory = None, past_history = 60*4,
     evaluation_interval = 200):
     self.x_file = x_file
     self.y_file = y_file
@@ -219,7 +219,7 @@ class NeuralNetworkModel():
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
   sla_metric_name = 'R_99'
-  steps_in_future = [5,10,20,30,40,50,60]
+  steps_in_future = [1,120]
   evaluation_interval = 200
   past_histories= [60*4, 60*8]
   for directory in directories:
