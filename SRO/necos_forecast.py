@@ -7,10 +7,13 @@ from tensorflow import keras
 import tensorflow as tf
 import numpy as np
 from time import process_time
+from scipy import stats
+
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 mpl.rcParams['figure.figsize'] = (8, 6)
+mpl.rcParams.update({'font.size': 15})
 mpl.rcParams['axes.grid'] = False
 
 class NeuralNetworkModel():
@@ -18,8 +21,8 @@ class NeuralNetworkModel():
   BATCH_SIZE = 256
   STEP = 1
 
-  def __init__(self, x_file, y_file, target_variable_name, steps_in_future = 30, directory = None, past_history = 60*4,
-    evaluation_interval = 200):
+  def __init__(self, x_file, y_file, target_variable_name, steps_in_future = 30, directory = None, 
+    past_history = 60*4, evaluation_interval = 200):
     self.x_file = x_file
     self.y_file = y_file
     self.steps_in_future = steps_in_future
@@ -55,6 +58,7 @@ class NeuralNetworkModel():
   def merge_dataset(self):
     x_raw = pd.read_csv(self.x_file)
     y_raw = pd.read_csv(self.y_file)
+    y_raw = self.drop_numerical_outliers(y_raw)
     merged_dataset = pd.merge(x_raw, y_raw, how='inner', on=['timestamp'])
     self.x_features = x_raw.columns.values.tolist()
     self.x_features.remove('timestamp')
@@ -92,36 +96,46 @@ class NeuralNetworkModel():
 
     self.input_shape = self.x_train_single.shape[-2:]
 
+  def create_time_steps2(self, delta, size):
+    return list(range(self.train_split+delta, self.train_split+size+delta))
+
   def create_time_steps(self, begin, end=0):
     time_steps = []
     for i in range(-begin, end, 1):
+    #for i in range(end, begin, 1):
       time_steps.append(i)
     return time_steps
 
   def show_plot(self,plot_data, delta, title):
-    labels = ['History', 'Model Prediction', 'Naive (simple average) {:.2f}'.format(plot_data[-1])]
+    #labels = ['History', 'Model Prediction', 'Naive (simple average) {:.2f}'.format(plot_data[-1])]
+    labels = ['Real', 'Forecast', 'Average']
     marker = ['.', '.', '-']
     colors = ['#56a64b', '#8ab8ff', '#6f4044']
- 
     plt.title(title)
     for i, x in enumerate(plot_data[:-1]):
       if i:
-        time_steps = self.create_time_steps(plot_data[0].shape[0])
+        #time_steps = self.create_time_steps(plot_data[0].shape[0])
+        time_steps = self.create_time_steps2(delta, plot_data[0].shape[0])
         plt.plot(time_steps, plot_data[i], marker[i], markersize=10,
                 label=labels[i])
       else:
-        time_steps = self.create_time_steps(plot_data[0].shape[0]+delta, -delta)
+        #time_steps = self.create_time_steps(plot_data[0].shape[0]+delta, -delta)
+        time_steps = self.create_time_steps2(0, plot_data[0].shape[0])
         plt.plot(time_steps, plot_data[i], marker[i], label=labels[i], color = colors[i])
 
     plt.plot(time_steps, [plot_data[-1]]*len(time_steps), marker[-1], label=labels[-1])
-    maximum = max(plot_data[1])
-    minimum = min(plot_data[1])
-    plt.plot(time_steps, [maximum]*len(time_steps), '--', color = '#808080', label='Maximum predicted {:.2f}'.format(maximum))
-    plt.plot(time_steps, [minimum]*len(time_steps), '--', color = '#4c4c4c', label='Minimum predicted {:.2f}'.format(minimum))
+    #maximum = max(plot_data[1])
+    #minimum = min(plot_data[1])
+    #plt.plot(time_steps, [maximum]*len(time_steps), '--', color = '#808080', label = 'Maximum forecasted')
+      #label='Maximum predicted {:.2f}'.format(maximum))
+    #plt.plot(time_steps, [minimum]*len(time_steps), '--', color = '#4c4c4c', label = 'Minimum forecasted')
+      #label='Minimum predicted {:.2f}'.format(minimum))
 
-    plt.legend()
+    plt.legend(ncol= 1, loc="upper left")
+    #plt.legend(ncol= 3, mode="expand")
     plt.ylim(0,300)
-    plt.xlabel('Time-Step')
+    plt.xlabel('Time (s)')
+    plt.ylabel('KPI value (ms)')
 
   def plot_train_history(self, history, title):
     loss = history.history['loss']
@@ -138,7 +152,16 @@ class NeuralNetworkModel():
 
     #plt.show()
 
-  def create_model(self, overwrite = True):
+  def drop_numerical_outliers(self, df, z_thresh=3):
+    # Constrains will contain `True` or `False` depending on if it is a value below the threshold.
+    constrains = df.select_dtypes(include=[np.number]) \
+        .apply(lambda x: np.abs(stats.zscore(x)) < z_thresh, reduce=False) \
+        .all(axis=1)
+    # Drop (inplace) values set to be rejected
+    df.drop(df.index[~constrains], inplace=True)
+    return df
+
+  def create_model(self, overwrite = False):
     file_name = 'model_{}_seconds_forecast_{}_past_history.h5'.format(self.steps_in_future, self.past_history)
     model_path = os.path.join(self.directory,file_name)
     self.preproccess_dataset()
@@ -169,8 +192,8 @@ class NeuralNetworkModel():
                                                   validation_steps=50)
 
       self.plot_train_history(self.single_step_history,
-                   '{} seconds forecast, {} history size \nTraining and Validation Histories'.format(self.steps_in_future, self.past_history))
-      figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history_train_history.png'.format(self.steps_in_future, self.past_history))
+                   '{} second(s) forecast, {} history size \nTraining and Validation Histories'.format(self.steps_in_future, self.past_history))
+      figure_path = os.path.join(self.directory, '{}_s_forecast_{}_past_history_train_history.png'.format(self.steps_in_future, self.past_history))
       plt.savefig(figure_path)
       self.single_step_model.save(model_path)
 
@@ -178,14 +201,21 @@ class NeuralNetworkModel():
     y_predictions =  self.denormalize_value(y_predictions)
     self.y_val_single = self.denormalize_value(self.y_val_single)
 
-    y_predictions_naive = self.y_val_single.mean()
-    mape_rna = self.mape(y_predictions, self.y_val_single)
-    mape_naive = self.mape(y_predictions_naive, self.y_val_single)
-    print("Steps: {} in future, history size: {}, MAPE: RNA {}, MAPE: naive {}".format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
+    y_validation_shifted = self.y_val_single[self.past_history:]
+    y_predictions_shifted = y_predictions[:-self.past_history]
+    y_predictions_naive = y_validation_shifted.mean()
+
+    mape_rna = self.mape(y_predictions_shifted, y_validation_shifted)
+    mape_naive = self.mape(y_predictions_naive, y_validation_shifted)
+    print("Steps: {} in future, history size: {}, MAPE: RNA {}, MAPE: naive {}".
+      format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
     plt.clf()
     #plt.figure(dpi=1200)
-    self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, '{} seconds forecast, {} history size \nMAPE RNA: {:.2f} MAPE NAIVE: {:.2f}'.format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
-    figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history.png'.format(self.steps_in_future, self.past_history))
+    #title = '{}s in future, {}s window \nMAPE RNA: {:.2f} MAPE NAIVE: {:.2f}'.format(self.steps_in_future, self.past_history, mape_rna, mape_naive)
+    title = '{}s in future, {}s window'.format(self.steps_in_future, self.past_history)
+    self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, title)
+    figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history.png'.
+      format(self.steps_in_future, self.past_history))
     #plt.show()
     plt.savefig(figure_path)
 
@@ -218,10 +248,13 @@ class NeuralNetworkModel():
 
 if __name__ == "__main__":
   directories = ['slices_files/slice_1/flavor_1', 'slices_files/slice_1/flavor_2']
-  sla_metric_name = 'R_99'
-  steps_in_future = [1,120]
-  evaluation_interval = 200
+  steps_in_future = [1, 30, 60, 120]
   past_histories= [60*4, 60*8]
+  # directories = ['slices_files/slice_1/flavor_1']
+  # steps_in_future = [1]
+  # past_histories= [60*4]
+  sla_metric_name = 'R_99'
+  evaluation_interval = 200
   for directory in directories:
     print("** Creating models in directory {} **".format(directory))
     x_file = os.path.join(directory, 'x_selected_metrics.csv')
