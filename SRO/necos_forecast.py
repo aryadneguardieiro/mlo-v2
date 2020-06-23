@@ -58,7 +58,7 @@ class NeuralNetworkModel():
   def merge_dataset(self):
     x_raw = pd.read_csv(self.x_file)
     y_raw = pd.read_csv(self.y_file)
-    y_raw = self.drop_numerical_outliers(y_raw)
+    #y_raw = self.drop_numerical_outliers(y_raw)
     merged_dataset = pd.merge(x_raw, y_raw, how='inner', on=['timestamp'])
     self.x_features = x_raw.columns.values.tolist()
     self.x_features.remove('timestamp')
@@ -102,37 +102,26 @@ class NeuralNetworkModel():
   def create_time_steps(self, begin, end=0):
     time_steps = []
     for i in range(-begin, end, 1):
-    #for i in range(end, begin, 1):
       time_steps.append(i)
     return time_steps
 
-  def show_plot(self,plot_data, delta, title):
-    #labels = ['History', 'Model Prediction', 'Naive (simple average) {:.2f}'.format(plot_data[-1])]
+  def show_plot(self, plot_data, delta, title):
     labels = ['Real', 'Forecast', 'Average']
     marker = ['.', '.', '-']
     colors = ['#56a64b', '#8ab8ff', '#6f4044']
     plt.title(title)
     for i, x in enumerate(plot_data[:-1]):
       if i:
-        #time_steps = self.create_time_steps(plot_data[0].shape[0])
         time_steps = self.create_time_steps2(delta, plot_data[0].shape[0])
         plt.plot(time_steps, plot_data[i], marker[i], markersize=10,
                 label=labels[i])
       else:
-        #time_steps = self.create_time_steps(plot_data[0].shape[0]+delta, -delta)
         time_steps = self.create_time_steps2(0, plot_data[0].shape[0])
         plt.plot(time_steps, plot_data[i], marker[i], label=labels[i], color = colors[i])
 
     plt.plot(time_steps, [plot_data[-1]]*len(time_steps), marker[-1], label=labels[-1])
-    #maximum = max(plot_data[1])
-    #minimum = min(plot_data[1])
-    #plt.plot(time_steps, [maximum]*len(time_steps), '--', color = '#808080', label = 'Maximum forecasted')
-      #label='Maximum predicted {:.2f}'.format(maximum))
-    #plt.plot(time_steps, [minimum]*len(time_steps), '--', color = '#4c4c4c', label = 'Minimum forecasted')
-      #label='Minimum predicted {:.2f}'.format(minimum))
 
     plt.legend(ncol= 1, loc="upper left")
-    #plt.legend(ncol= 3, mode="expand")
     plt.ylim(0,300)
     plt.xlabel('Time (s)')
     plt.ylabel('KPI value (ms)')
@@ -161,7 +150,7 @@ class NeuralNetworkModel():
     df.drop(df.index[~constrains], inplace=True)
     return df
 
-  def create_model(self, overwrite = False):
+  def create_model(self, overwrite = True):
     file_name = 'model_{}_seconds_forecast_{}_past_history.h5'.format(self.steps_in_future, self.past_history)
     model_path = os.path.join(self.directory,file_name)
     self.preproccess_dataset()
@@ -200,20 +189,17 @@ class NeuralNetworkModel():
     y_predictions = self.single_step_model.predict(self.x_val_single).flatten()
     y_predictions =  self.denormalize_value(y_predictions)
     self.y_val_single = self.denormalize_value(self.y_val_single)
+    y_predictions_naive = self.y_val_single.mean()
 
-    y_validation_shifted = self.y_val_single[self.past_history:]
-    y_predictions_shifted = y_predictions[:-self.past_history]
-    y_predictions_naive = y_validation_shifted.mean()
+    mape_rna = self.mape(y_predictions, self.y_val_single)
+    mape_naive = self.mape(y_predictions_naive, self.y_val_single)
 
-    mape_rna = self.mape(y_predictions_shifted, y_validation_shifted)
-    mape_naive = self.mape(y_predictions_naive, y_validation_shifted)
     print("Steps: {} in future, history size: {}, MAPE: RNA {}, MAPE: naive {}".
       format(self.steps_in_future, self.past_history, mape_rna, mape_naive))
     plt.clf()
-    #plt.figure(dpi=1200)
-    #title = '{}s in future, {}s window \nMAPE RNA: {:.2f} MAPE NAIVE: {:.2f}'.format(self.steps_in_future, self.past_history, mape_rna, mape_naive)
     title = '{}s in future, {}s window'.format(self.steps_in_future, self.past_history)
     self.show_plot([self.y_val_single, y_predictions, y_predictions_naive], self.steps_in_future, title)
+
     figure_path = os.path.join(self.directory, '{}_seconds_forecast_{}_past_history.png'.
       format(self.steps_in_future, self.past_history))
     #plt.show()
@@ -254,7 +240,8 @@ if __name__ == "__main__":
   # steps_in_future = [1]
   # past_histories= [60*4]
   sla_metric_name = 'R_99'
-  evaluation_interval = 200
+  evaluation_interval = 100
+  overwrite = True
   for directory in directories:
     print("** Creating models in directory {} **".format(directory))
     x_file = os.path.join(directory, 'x_selected_metrics.csv')
@@ -265,7 +252,7 @@ if __name__ == "__main__":
           past_history=past_history, evaluation_interval = evaluation_interval)
         print("** Creating model for {} steps in future and {} past history size ** ".format(value,past_history))
         ini_fit = process_time()
-        model.create_model()
+        model.create_model(overwrite = overwrite)
         end_fit = process_time()
 
         print("** Time elapsed: {} **".format(end_fit-ini_fit))
