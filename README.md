@@ -1,7 +1,8 @@
 # Machine Learning Based Orchestration Version 2 (MLO-V2)
-This repository is a fork of the NECOS original MLO repository: https://gitlab.com/necos/demos/mlo in order to make improovements in the slice orchestration using machine learning demonstration.
+This repository is a fork of the NECOS original MLO repository: https://gitlab.com/necos/demos/mlo in order to make improovements in the slice orchestration using machine learning demonstration. 
 
 More information about NECOS project: http://www.h2020-necos.eu/
+Dissertation about the orchestration phase: https://repositorio.ufu.br/bitstream/123456789/32692/4/OrquestracaoCloudSlices.pdf
 
 ## Functional components
 The picture bellow shows the architecture of this demo. The NECOS components implemented here are the SRO (Slice Resource Orchestrator) 
@@ -123,7 +124,7 @@ $ ./run_influx_producers.sh
 $ sudo service grafana-server start
 ```
 
-3. Run the Load Generator, feeling the variables accordlying with the load needed:
+3. Run the Load Generator, changing the variables accordlying with the load needed:
 ```
 $ ./apache-cassandra-3.11.3/tools/run_loadgen_and_kafka_exporter.sh $DURATION_TOTAL $SINUSOID_PERIOD $LAMBDA $INITIAL_NUMBER_CLIENTS
 ```
