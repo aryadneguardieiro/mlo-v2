@@ -65,7 +65,7 @@ To install this DEMO:
 1. Clone the source code of this repository in the machine(s) that is(are) going to be: the (1) SRO, the (2)IMA, the  (3)Modified Cassandra Client,
 the (4)Load Generator, the (5)Granafa dashboard, the (6)Prometheus Machine, and the (7)Cassandra Service Host(s).
 ```
-$ git clone https://gitlab.com/necos/elasticity-demo-ufu.git
+$ git clone https://github.com/aryadneguardieiro/mlo-v2.git
 ```
 
 2. Inside the repository directory, run in each machine:
