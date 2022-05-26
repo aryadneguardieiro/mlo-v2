@@ -30,7 +30,7 @@ PyYAML==3.12
 requests==2.18.4
 singledispatch==3.4.0.3
 six==1.11.0
-ujson==1.35
+ujson==5.2.0
 urllib3==1.22
 virtualenv==15.1.0
 wrapt==1.10.11
